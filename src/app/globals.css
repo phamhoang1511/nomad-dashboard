@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Bảng màu "Warm Minimal / Boutique Beige" — lấy nguyên từ file design.
+   Tên token theo vai trò (shell/surface/ink/…) thay vì theo sắc độ, để chỗ dùng
+   đọc ra ngay ý nghĩa.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-shell: #efe9df; /* nền trang */
+  --color-surface: #fdfbf7; /* nền card */
+  --color-surface-inset: #f5efe2; /* rãnh timeline, ô trống */
+  --color-line: #ece4d5; /* viền đậm */
+  --color-line-soft: #f2ebde; /* gạch chân từng dòng bảng */
+
+  --color-ink: #3d3529;
+  --color-ink-soft: #4a4133;
+  --color-muted: #8a7f6e;
+  --color-muted-soft: #a99e8b;
+
+  --color-gold: #c9a96a;
+  --color-gold-active: #b99247; /* booking đang diễn ra */
+  --color-gold-deep: #a6874b;
+  --color-gold-ink: #8a6a2e; /* chữ trên nền vàng nhạt */
+  --color-gold-edge: #7a5e22;
+  --color-gold-soft: #f3e7cd;
+  --color-gold-wash: #f0e7d6;
+  --color-gold-track: #efe7d8;
+
+  --color-sage: #5b8c6a;
+  --color-sage-deep: #4e7a5c; /* lợi nhuận */
+  --color-sage-wash: #e8ede4;
+
+  --color-teal: #6e9c8e; /* đệm dọn vệ sinh */
+  --color-teal-soft: #a7c6bb;
+  --color-teal-edge: #3e6357;
+
+  --color-clay: #b0654f; /* vạch "hiện tại", chi phí */
+  --color-clay-wash: #f6e6e0;
+
+  --animate-live: live 1.6s ease-in-out infinite;
+
+  @keyframes live {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
+body {
+  background: var(--color-shell);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-gold-soft);
+  color: var(--color-ink);
+}
+
+@layer components {
+  .card {
+    background: var(--color-surface);
+    border-radius: 24px;
+    box-shadow: 0 12px 30px -20px rgba(61, 53, 41, 0.4);
+  }
+
+  /* Nhãn chữ nhỏ in hoa giãn chữ — mô-típ lặp khắp design */
+  .eyebrow {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Sọc chéo đánh dấu 15' dọn vệ sinh giữa hai lượt khách */
+  .hatch-cleaning {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--color-teal) 0,
+      var(--color-teal) 3px,
+      var(--color-teal-soft) 3px,
+      var(--color-teal-soft) 6px
+    );
+  }
+
+  /* Lưới dọc 2 tiếng/ô trên rãnh timeline */
+  .timeline-grid {
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(100% / 12 - 1px),
+      rgba(61, 53, 41, 0.05) calc(100% / 12 - 1px),
+      rgba(61, 53, 41, 0.05) calc(100% / 12)
+    );
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field:focus {
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px rgba(201, 169, 106, 0.18);
+  }
+  .field::placeholder {
+    color: var(--color-muted-soft);
+  }
+  .field:disabled {
+    background: var(--color-surface-inset);
+    color: var(--color-muted);
+  }
+}
+
+/* Thanh cuộn mảnh cho vùng timeline cuộn ngang trên màn hình hẹp */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 4px;
+}
