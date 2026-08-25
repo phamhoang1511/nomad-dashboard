@@ -1,10 +1,15 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import {createServerClient} from "@supabase/ssr";
+import {cookies} from "next/headers";
 
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
+import {isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL} from "./config";
 
-/** Client phía server — dùng trong Server Component / Route Handler. */
 export async function createSupabaseServerClient() {
+  if (!isSupabaseConfigured) {
+    throw new Error(
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -14,12 +19,14 @@ export async function createSupabaseServerClient() {
       },
       setAll(cookiesToSet) {
         try {
-          for (const { name, value, options } of cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);
-          }
-        } catch {
-          // Server Component không được set cookie. Việc refresh session đã do
-          // proxy.ts lo, nên bỏ qua ở đây là an toàn.
+          });
+        } catch (error) {
+          console.warn(
+            "Could not persist refreshed Supabase cookies.",
+            error,
+          );
         }
       },
     },

@@ -1,20 +1,19 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import {createServerClient} from "@supabase/ssr";
+import {NextRequest, NextResponse} from "next/server";
+import {isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL} from "./config";
 
-import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config";
+function redirectWithCookies(url: URL, source: NextResponse) {
+  const redirect = NextResponse.redirect(url);
 
-/** Route công khai duy nhất. Mọi đường dẫn khác đều cần đăng nhập. */
-const LOGIN_PATH = "/login";
+  source.cookies.getAll().forEach((cookie) => {
+    redirect.cookies.set(cookie);
+  });
 
-/**
- * Làm mới session Supabase trên mỗi request và chặn route chưa đăng nhập.
- *
- * Đây là chốt kiểm duy nhất của app: các page đều là client component nên
- * không tự kiểm tra auth.
- */
+  return redirect;
+}
+
 export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured) {
-    // Chưa cấu hình env — để request đi qua, trang sẽ hiện hướng dẫn cài đặt.
     return NextResponse.next({ request });
   }
 
@@ -25,39 +24,42 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
-        for (const { name, value } of cookiesToSet) {
+      setAll(cookies) {
+        cookies.forEach(({ name, value }) => {
           request.cookies.set(name, value);
-        }
+        });
         response = NextResponse.next({ request });
-        for (const { name, value, options } of cookiesToSet) {
+
+        cookies.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
-        }
+        });
       },
     },
   });
 
-  // getUser() xác thực token với Supabase, khác getSession() vốn chỉ đọc cookie.
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname, search } = request.nextUrl;
-  const isLoginPage = pathname === LOGIN_PATH;
-
+  const isLoginPage = pathname === "/login";
   if (!user && !isLoginPage) {
     const url = request.nextUrl.clone();
-    url.pathname = LOGIN_PATH;
-    // Nhớ đích đến để đăng nhập xong quay lại đúng chỗ.
-    url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname + search)}`;
-    return NextResponse.redirect(url);
+    url.pathname = "/login";
+    if (pathname === "/") {
+      url.search = "";
+    } else {
+      url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    }
+    return redirectWithCookies(url, response);
   }
 
   if (user && isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url, response);
   }
 
   return response;
